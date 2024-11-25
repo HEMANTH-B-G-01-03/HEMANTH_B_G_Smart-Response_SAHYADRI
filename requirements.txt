@@ -1,4 +1,5 @@
 pip install openai
 pip install python-dotenv
+pip install streamlit openai python-dotenv #for frontend
 
 
