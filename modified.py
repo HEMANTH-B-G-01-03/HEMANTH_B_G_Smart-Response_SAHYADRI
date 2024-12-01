@@ -1,9 +1,9 @@
-import openai
-import os
-import streamlit as st
-import json
-import pandas as pd
-from dotenv import load_dotenv
+import openai    #interacting with the open ai 
+import os           # to interact with the os and to read the evn variable 
+import streamlit as st    #  for  web interface 
+import json             # hadeling json files 
+
+from dotenv import load_dotenv   # to read the  variables  from evn file 
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -11,13 +11,15 @@ load_dotenv()
 # Retrieve the API key from the environment
 my_key = os.getenv("MY_KEY")
 
-# Set your OpenAI API key
+# seting my open ai  jey 
 openai.api_key = my_key
 
 # Function to generate the email response using chat models (gpt-3.5-turbo or gpt-4)
 def generate_email_response(client_first_name, client_last_name, client_email, client_country, client_language, 
                             project_type, service_category, project_details, budget, your_name):
-    # Constructing the prompt
+    
+    
+    # This  prompt is going to exolain  AI what kind of response to generate, including tone and content.
     prompt = f"""
     You are a professional consultant. You have received a project inquiry with the following details:
 
@@ -34,18 +36,21 @@ def generate_email_response(client_first_name, client_last_name, client_email, c
     Please generate a professional and human-like email response to the client confirming the project details, providing a summary, and suggesting next steps. Avoid generic phrases like "I hope this email finds you well." The response should sound natural and personalized. Address the email using {your_name}.
     """
 
+
+
     # Try to make the API call to OpenAI
     try:
         # Using openai.ChatCompletion.create() for chat models like gpt-3.5-turbo
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # Make sure to use the correct model
+            model="gpt-3.5-turbo",  
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=300,
-            temperature=0.7
+            max_tokens=300,  # this is the maximum number of words of email to be generated  
+            temperature=0.7   # lower the value of this it will give more precise and accurate response in the email
         )
 
         # Extracting the email response text
-        email_response = response['choices'][0]['message']['content'].strip()
+
+        email_response = response['choices'][0]['message']['content'].strip()  #  The response is a JSON object containing various details, including the generated email text.
 
         return email_response
 
@@ -57,13 +62,18 @@ def generate_email_response(client_first_name, client_last_name, client_email, c
         return f"Rate Limit Error: You have hit the rate limit. {str(e)}"
     except Exception as e:
         return f"Error generating response: {str(e)}"
+    
 
-# Function to collect feedback from users and store it in a file (CSV or JSON)
+
+
+
+
+# Function to collect feedback from users and store it in a file (JSON)
 def collect_feedback(your_name, client_first_name, client_last_name, client_email, email_response):
     st.markdown("### If you didn’t like the response, please fill in the feedback below.")
     
     # Display a suggestion text area for feedback
-    suggestion = st.text_area("Please provide your suggestions on how we can improve the response:", height=200)  # Increase the height of the text area
+    suggestion = st.text_area("Please provide your suggestions on how we can improve the response:", height=200)  
     
     # Button to submit the feedback
     submit_button = st.button("Submit Feedback")
@@ -84,29 +94,20 @@ def collect_feedback(your_name, client_first_name, client_last_name, client_emai
     return suggestion
 
 
-# Function to store feedback in either CSV or JSON
+
+
+# Function to store feedback in JSON format
 def store_feedback(feedback_data):
-    feedback_type = "json"  # Choose whether to store as JSON or CSV
-    if feedback_type == "json":
-        # Storing feedback in JSON format
-        if os.path.exists("feedback.json"):
-            with open("feedback.json", "r") as file:
-                existing_data = json.load(file)
-        else:
-            existing_data = []
+    # Storing feedback in JSON format
+    if os.path.exists("feedback.json"):
+        with open("feedback.json", "r") as file:
+            existing_data = json.load(file)
+    else:
+        existing_data = []
 
-        existing_data.append(feedback_data)
-        with open("feedback.json", "w") as file:
-            json.dump(existing_data, file, indent=4)
-
-    elif feedback_type == "csv":
-        # Storing feedback in CSV format
-        df = pd.DataFrame([feedback_data])
-        if os.path.exists("feedback.csv"):
-            df.to_csv("feedback.csv", mode='a', header=False, index=False)
-        else:
-            df.to_csv("feedback.csv", mode='w', header=True, index=False)
-
+    existing_data.append(feedback_data)
+    with open("feedback.json", "w") as file:
+        json.dump(existing_data, file, indent=4)
 
 # Function to collect the 'Yes' or 'No' feedback separately
 def collect_liked_feedback():
